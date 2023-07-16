@@ -9,8 +9,6 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="Items\" />
-    <Folder Include="Potions\" />
   </ItemGroup>
 
 </Project>
