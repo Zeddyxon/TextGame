@@ -1,27 +1,29 @@
-﻿using Microsoft.VisualBasic;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using TextGame.Constants;
+﻿using System.Text;
 using TextGame.Map;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
+        Console.OutputEncoding = Encoding.UTF8;
         List<List<Tile>> tiles = new List<List<Tile>>();
         Map map = new Map(tiles);
+
+
         map.GenerateMap();
-        map.CreateRoomInSector(1);
+        map.GenerateFloor();
+        map.CreateRooms();
+
+        //map.CreatePathways();
+
         map.DrawMap();
+
 
         bool gameIsRunning = true;
 
-        //Map gameMap = new Map(TextGame.Constants.Constants.MapHeight, TextGame.Constants.Constants.MapWidth);
-        //gameMap.GenerateMap();
-
         while (gameIsRunning)
         {
-            if(Console.KeyAvailable)
+            if (Console.KeyAvailable)
             {
                 ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 

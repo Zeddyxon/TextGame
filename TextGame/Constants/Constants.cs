@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace TextGame.Constants
 {
+
     public class Constants
     {
-        public const int MapHeight = 128;
-        public const int MapWidth = 128;
+        //Honza: takhle se píšou konstanty
+        public static readonly int MAP_HEIGHT = 50;
+        public static readonly int MAP_WIDTH = 50;
     }
 }

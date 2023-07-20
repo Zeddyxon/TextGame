@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TextGame.Characters;
 using TextGame.Items;
+using TextGame.Object;
 
 namespace TextGame.Map
 {
@@ -21,9 +22,9 @@ namespace TextGame.Map
         public int y { get; set; }
         public Type type { get; set; }
 
-        public Player player { get; set; }
-        public Enemy enemy { get; set; }
-        public Item Item { get; set; } 
+        public Player? player { get; set; }
+        public Enemy? enemy { get; set; }
+        public ObjectInTile? objectInTile { get; set; } 
 
         public Tile(int x, int y, Type type)
         {

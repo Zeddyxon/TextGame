@@ -9,7 +9,8 @@ namespace TextGame.Items
     public enum ItemType
     {
         POTION,
-        WEAPEON
+        WEAPEON,
+        ARMOUR
     }
     public class Item
     {
