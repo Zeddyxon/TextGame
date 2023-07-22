@@ -43,24 +43,27 @@ namespace TextGame.Map
             int entranceX = random.Next(TopCornerX + 1, TopCornerX + width - 1);
             int entranceY = random.Next(TopCornerY + 1, TopCornerY + height - 1);
 
-            /*
-            for(int y = 0; y < floorTiles.Count; y++)
-            {
-                for(int x = 0;  x < floorTiles[y].Count; x++)
-                {
-                    if(x == entranceX && y == entranceY)
-                    {
-                        floorTiles[y][x].objectInTile = new Object.ObjectInTile(Object.TypeOfObject.ENTRANCE);
-                    }
-                }
-            }
-            */
-            Console.WriteLine("Entrance is Y:" + entranceY + " X:" + entranceX);
+            //Console.WriteLine("Entrance is Y:" + entranceY + " X:" + entranceX);
             foreach (Tile tile in room.floorTiles)
             {
                 if (tile.x == entranceX && tile.y == entranceY)
                 {
                     tile.objectInTile = new Object.ObjectInTile(Object.TypeOfObject.ENTRANCE);
+                }
+            }
+        }
+        public void GenerateExit(Room room)
+        {
+            Random random = new Random();
+            int exitX = random.Next(TopCornerX + 1, TopCornerX + width - 1);
+            int exitY = random.Next(TopCornerY + 1, TopCornerY + height - 1);
+
+            //Console.WriteLine("Entrance is Y:" + entranceY + " X:" + entranceX);
+            foreach (Tile tile in room.floorTiles)
+            {
+                if (tile.x == exitX && tile.y == exitY)
+                {
+                    tile.objectInTile = new Object.ObjectInTile(Object.TypeOfObject.EXIT);
                 }
             }
         }

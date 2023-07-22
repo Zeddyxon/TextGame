@@ -5,6 +5,7 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using TextGame.Characters;
 using TextGame.Object;
 
 namespace TextGame.Map
@@ -20,7 +21,8 @@ namespace TextGame.Map
             this.map = map;
         }
         //Vytvoří typy ROOM pro toto patro a vytvoří 4 instance ROOM
-      
+        
+        //Generovani mistnosti
         //Přidělí každému Tile X, Y a zhodnotí je jako inaccesible
         public void GenerateMap()
         {
@@ -151,8 +153,7 @@ namespace TextGame.Map
 
                     case 1:
                     case 3:
-                        randX1 = room.TopCornerX
-                            ;
+                        randX1 = room.TopCornerX;
                         randY1 = rand.Next(room.TopCornerY + 1, room.TopCornerY + room.height - 1);
 
                         randX2 = rand.Next(room.TopCornerX + 1, room.TopCornerX + room.width - 1);
@@ -289,6 +290,7 @@ namespace TextGame.Map
                                 }
                             }
                         }
+                        room.GenerateExit(room);
                         break;
                     case RoomType.TRADER:
                         for (int y = 0; y < Constants.Constants.MAP_HEIGHT; y++)
@@ -356,7 +358,177 @@ namespace TextGame.Map
         }
         public void CreatePathways()
         {
+            List<List<Tile>> mapList = map;
+            //vygenerovani cestiček ke středu mapy
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                Room room = rooms[i];
+                int staticDoorX;
+                int staticDoorY;
+                int untilLeftRight = Constants.Constants.MAP_WIDTH / 2;
+                int untilUpDown = Constants.Constants.MAP_HEIGHT / 2;
 
+                switch (i)
+                {
+                    case 0:
+                        staticDoorX = room.doorUpDown.x;
+                        staticDoorY = room.doorLeftRight.y;
+
+                        for (int x = room.doorLeftRight.x + 1; x < untilLeftRight; x++)
+                        {
+                            mapList[staticDoorY + 1][x].type = Type.WALL;
+                            mapList[staticDoorY][x].type = Type.GROUND;
+                            mapList[staticDoorY - 1][x].type = Type.WALL;
+                        }
+                        for (int y = room.doorUpDown.y + 1; y < untilUpDown; y++)
+                        {
+                            mapList[y][staticDoorX - 1].type = Type.WALL;
+                            mapList[y][staticDoorX].type = Type.GROUND;
+                            mapList[y][staticDoorX + 1].type = Type.WALL;
+                        }
+                        break;
+
+                    case 1:
+                        staticDoorX = room.doorUpDown.x;
+                        staticDoorY = room.doorLeftRight.y;
+
+                        for (int x = room.doorLeftRight.x - 1; x > untilLeftRight; x--)
+                        {
+                            mapList[staticDoorY + 1][x].type = Type.WALL;
+                            mapList[staticDoorY][x].type = Type.GROUND;
+                            mapList[staticDoorY - 1][x].type = Type.WALL;
+                        }
+                        for (int y = room.doorUpDown.y + 1; y < untilUpDown; y++)
+                        {
+                            mapList[y][staticDoorX - 1].type = Type.WALL;
+                            mapList[y][staticDoorX].type = Type.GROUND;
+                            mapList[y][staticDoorX + 1].type = Type.WALL;
+                        }
+                        break;
+
+                    case 2:
+                        staticDoorX = room.doorUpDown.x;
+                        staticDoorY = room.doorLeftRight.y;
+
+                        for (int x = room.doorLeftRight.x + 1; x < untilLeftRight; x++)
+                        {
+                            mapList[staticDoorY + 1][x].type = Type.WALL;
+                            mapList[staticDoorY][x].type = Type.GROUND;
+                            mapList[staticDoorY - 1][x].type = Type.WALL;
+                        }
+                        for (int y = room.doorUpDown.y - 1; y > untilUpDown; y--)
+                        {
+                            mapList[y][staticDoorX - 1].type = Type.WALL;
+                            mapList[y][staticDoorX].type = Type.GROUND;
+                            mapList[y][staticDoorX + 1].type = Type.WALL;
+                        }
+                        break;
+
+                    case 3:
+                        staticDoorX = room.doorUpDown.x;
+                        staticDoorY = room.doorLeftRight.y;
+
+                        for (int x = room.doorLeftRight.x - 1; x > untilLeftRight; x--)
+                        {
+                            mapList[staticDoorY + 1][x].type = Type.WALL;
+                            mapList[staticDoorY][x].type = Type.GROUND;
+                            mapList[staticDoorY - 1][x].type = Type.WALL;
+                        }
+                        for (int y = room.doorUpDown.y - 1; y > untilUpDown; y--)
+                        {
+                            mapList[y][staticDoorX - 1].type = Type.WALL;
+                            mapList[y][staticDoorX].type = Type.GROUND;
+                            mapList[y][staticDoorX + 1].type = Type.WALL;
+                        }
+                        break;
+                    default:
+                        continue;
+                }
+            }
+            //Spojeni cesticek uprostred mapy
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                int lefterDoor;
+                int righterDoor;
+                int higherDoor; 
+                int lowerDoor; 
+
+                switch (i)
+                {
+                    case 0:
+                    case 2:
+                        higherDoor = (rooms[i].doorLeftRight.y < rooms[i + 1].doorLeftRight.y) ? rooms[i].doorLeftRight.y : rooms[i + 1].doorLeftRight.y;
+                        lowerDoor = (rooms[i].doorLeftRight.y > rooms[i + 1].doorLeftRight.y) ? rooms[i].doorLeftRight.y : rooms[i + 1].doorLeftRight.y;
+                        
+                        for (int theY = higherDoor; theY <= lowerDoor; theY++)
+                        {
+                            mapList[theY][Constants.Constants.MAP_WIDTH / 2].type = Type.GROUND;
+
+                            int searchStartX = (Constants.Constants.MAP_WIDTH / 2) - 1;
+                            int searchStartY = theY - 1;
+                            int searchZoneSquare = 3;
+                            for (int y = searchStartY; y < searchStartY + searchZoneSquare; y++)
+                            {
+                                for (int x = searchStartX; x < searchStartX + searchZoneSquare; x++)
+                                {
+                                    if (mapList[y][x].type == Type.INACCESIBLE)
+                                    {
+                                        mapList[y][x].type = Type.WALL;
+                                    }
+                                }
+                            }
+                        }
+                        if (i == 0)
+                        {
+                            lefterDoor = (rooms[i].doorUpDown.x < rooms[i + 2].doorUpDown.x) ? rooms[i].doorUpDown.x : rooms[i + 2].doorUpDown.x;
+                            righterDoor = (rooms[i].doorUpDown.x > rooms[i + 2].doorUpDown.x) ? rooms[i].doorUpDown.x : rooms[i + 2].doorUpDown.x;
+
+                            for (int theX = lefterDoor; theX <= righterDoor; theX++)
+                            {
+                                mapList[Constants.Constants.MAP_HEIGHT / 2][theX].type = Type.GROUND;
+
+                                int searchStartX = theX - 1;
+                                int searchStartY = (Constants.Constants.MAP_HEIGHT / 2) - 1;
+                                int searchZoneSquare = 3;
+                                for (int y = searchStartY; y < searchStartY + searchZoneSquare; y++)
+                                {
+                                    for (int x = searchStartX; x < searchStartX + searchZoneSquare; x++)
+                                    {
+                                        if (mapList[y][x].type == Type.INACCESIBLE)
+                                        {
+                                            mapList[y][x].type = Type.WALL;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case 1:
+                        lefterDoor = (rooms[i].doorUpDown.x < rooms[i + 2].doorUpDown.x) ? rooms[i].doorUpDown.x : rooms[i + 2].doorUpDown.x;
+                        righterDoor = (rooms[i].doorUpDown.x > rooms[i + 2].doorUpDown.x) ? rooms[i].doorUpDown.x : rooms[i + 2].doorUpDown.x;
+                        for (int theX = lefterDoor; theX <= righterDoor; theX++)
+                        {
+                            mapList[Constants.Constants.MAP_HEIGHT / 2][theX].type = Type.GROUND;
+
+                            int searchStartX = theX - 1;
+                            int searchStartY = (Constants.Constants.MAP_HEIGHT / 2) - 1;
+                            int searchZoneSquare = 3;
+                            for (int y = searchStartY; y < searchStartY + searchZoneSquare; y++)
+                            {
+                                for (int x = searchStartX; x < searchStartX + searchZoneSquare; x++)
+                                {
+                                    if (mapList[y][x].type == Type.INACCESIBLE)
+                                    {
+                                        mapList[y][x].type = Type.WALL;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        continue;
+                }
+            }
         }
         public void GenerateObjectsInRooms(List<RoomType> roomsInThisFloor)
         {
@@ -364,10 +536,22 @@ namespace TextGame.Map
             
         
         }
-        public void GeneratePlayer()
+        //Generovani hrace na mape
+        public void SpawnPlayer()
         {
-
+            foreach(List<Tile> tileRow in map)
+            {
+                foreach(Tile tile in tileRow)
+                {
+                    if(tile.objectInTile is not null && tile.objectInTile.typeOfObject == TypeOfObject.ENTRANCE)
+                    {
+                        tile.player = new Player(tile.x, tile.y, 10, 5, 1, 2, 1);
+                    }
+                }
+            }
         }
+
+
         public void DrawMap()
         {
             List<List<Tile>> tileMap = map;
@@ -392,10 +576,13 @@ namespace TextGame.Map
                             stringBuilderRow.Append("▓▓");
                             break;
                         case Type.GROUND:
-
-                            if (tile.objectInTile.typeOfObject == TypeOfObject.NONE)
+                            if (tile.objectInTile is null || tile.objectInTile.typeOfObject == TypeOfObject.NONE)
                             {
                                 stringBuilderRow.Append(" .");
+                            }
+                            else if (tile.objectInTile is not null && tile.player is not null)
+                            {
+                                stringBuilderRow.Append(" ☺");
                             }
                             else
                             {

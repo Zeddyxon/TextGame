@@ -15,9 +15,9 @@ namespace TextGame.Object
     }
     public class ObjectInTile
     {
-        public TypeOfObject typeOfObject { get; }
+        public TypeOfObject? typeOfObject { get; }
 
-        public ObjectInTile(TypeOfObject typeOfObject)
+        public ObjectInTile(TypeOfObject? typeOfObject)
         {
             this.typeOfObject = typeOfObject;
         }

@@ -9,12 +9,14 @@ internal class Program
         List<List<Tile>> tiles = new List<List<Tile>>();
         Map map = new Map(tiles);
 
-
+        //Příprava mapy
         map.GenerateMap();
         map.GenerateFloor();
         map.CreateRooms();
+        map.CreatePathways();
 
-        //map.CreatePathways();
+        //Vygenerovani objektu v mape
+        map.SpawnPlayer();
 
         map.DrawMap();
 
