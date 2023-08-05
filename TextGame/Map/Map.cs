@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
@@ -13,15 +14,17 @@ namespace TextGame.Map
     public class Map
     {
         private List<List<Tile>> map;
-        
+
         public List<Room> rooms = new List<Room>(4);
+        public static Player player = new Player(0, 0, 5, 5, 3, 1, 1, 1);
+        //public static List<Object.ObjectInTile> = new List<Object.ObjectInTile>;
 
         public Map(List<List<Tile>> map)
         {
             this.map = map;
         }
         //Vytvoří typy ROOM pro toto patro a vytvoří 4 instance ROOM
-        
+
         //Generovani mistnosti
         //Přidělí každému Tile X, Y a zhodnotí je jako inaccesible
         public void GenerateMap()
@@ -43,7 +46,7 @@ namespace TextGame.Map
         {
             //returns an array containing all the values of the RoomType, Except ENTRANCE and EXIT
             RoomType[] roomTypes = ((RoomType[])Enum.GetValues(typeof(RoomType)))
-                .Where(rt => rt != RoomType.ENTRACNCE && rt != RoomType.EXIT) 
+                .Where(rt => rt != RoomType.ENTRACNCE && rt != RoomType.EXIT)
                 .ToArray();
             List<Room> retunrRoomTypes = new List<Room>(4)
             {
@@ -54,7 +57,7 @@ namespace TextGame.Map
             };
             Random random = new Random();
             Random random1 = new Random();
-            int positionStart = random.Next(0,4);
+            int positionStart = random.Next(0, 4);
             int positionEnd = random1.Next(0, 4);
 
 
@@ -66,21 +69,21 @@ namespace TextGame.Map
             Console.WriteLine(positionStart);
             Console.WriteLine(positionEnd);
 
-            for (int i = 0; i < roomTypes.Count(); i++) 
+            for (int i = 0; i < roomTypes.Count(); i++)
             {
-                if(i == positionStart)
+                if (i == positionStart)
                 {
                     retunrRoomTypes[i] = new Room(RoomType.ENTRACNCE, 0, 0, 0, 0);
                 }
-                if(i == positionEnd)
+                if (i == positionEnd)
                 {
                     retunrRoomTypes[i] = new Room(RoomType.EXIT, 0, 0, 0, 0);
                 }
-                if(i !=  positionStart && i != positionEnd)
+                if (i != positionStart && i != positionEnd)
                 {
                     retunrRoomTypes[i] = new Room(roomTypes[random.Next(0, roomTypes.Length)], 0, 0, 0, 0);
                 }
-                
+
             }
             rooms = retunrRoomTypes;
         }
@@ -88,10 +91,10 @@ namespace TextGame.Map
         {
             Random rand = new Random();
             //Toto vše se bude generovat podmíněně dle umístění místonosti
-            int randomX = rand.Next(10, 20);
-            int randomY = rand.Next(10, 20);
-            int positionOfDoorsX = rand.Next(randomX, randomX + Constants.Constants.MAP_WIDTH);
-            int positionOfDoorsY = rand.Next(randomY, randomY + Constants.Constants.MAP_HEIGHT); 
+            int randomX;// = rand.Next(10, 20);
+            int randomY;// = rand.Next(10, 20);
+            //int positionOfDoorsX = rand.Next(randomX, randomX + Constants.Constants.MAP_WIDTH);
+            //int positionOfDoorsY = rand.Next(randomY, randomY + Constants.Constants.MAP_HEIGHT); 
             //
             List<List<Tile>> mapList = map;
 
@@ -129,7 +132,7 @@ namespace TextGame.Map
                 rooms[positionOfSector].TopCornerX = randomX;
                 rooms[positionOfSector].TopCornerY = randomY;
             }
-            
+
             foreach (Room room in rooms)
             {
                 //Souřadnice pro dveře NAPRAVO/LEVO
@@ -168,7 +171,7 @@ namespace TextGame.Map
                 room.doorUpDown = mapList[randY2][randX2];
                 mapList[randY1][randX1].type = Type.DOOR;
                 mapList[randY2][randX2].type = Type.DOOR;
-                
+
                 switch (room.type)
                 {
                     case RoomType.CLASSICROOM:
@@ -184,7 +187,7 @@ namespace TextGame.Map
                                     {
                                         continue;
                                     }
-                                    else if (y == room.TopCornerY || x == room.TopCornerX || 
+                                    else if (y == room.TopCornerY || x == room.TopCornerX ||
                                        y == room.TopCornerY + room.height || x == room.TopCornerX + room.width)
                                     {
                                         mapList[y][x].type = Type.WALL;
@@ -450,8 +453,8 @@ namespace TextGame.Map
             {
                 int lefterDoor;
                 int righterDoor;
-                int higherDoor; 
-                int lowerDoor; 
+                int higherDoor;
+                int lowerDoor;
 
                 switch (i)
                 {
@@ -459,7 +462,7 @@ namespace TextGame.Map
                     case 2:
                         higherDoor = (rooms[i].doorLeftRight.y < rooms[i + 1].doorLeftRight.y) ? rooms[i].doorLeftRight.y : rooms[i + 1].doorLeftRight.y;
                         lowerDoor = (rooms[i].doorLeftRight.y > rooms[i + 1].doorLeftRight.y) ? rooms[i].doorLeftRight.y : rooms[i + 1].doorLeftRight.y;
-                        
+
                         for (int theY = higherDoor; theY <= lowerDoor; theY++)
                         {
                             mapList[theY][Constants.Constants.MAP_WIDTH / 2].type = Type.GROUND;
@@ -530,69 +533,245 @@ namespace TextGame.Map
                 }
             }
         }
-        public void GenerateObjectsInRooms(List<RoomType> roomsInThisFloor)
+        public void GenerateObjectsInRooms(List<Room> roomsInThisFloor)
         {
-            List<Tile> possibleObjects = new List<Tile>(); //Do tohoto listu se budou ukladat vsechny policka kam je mozne neco umistit a pak se nahodne vyberou
-            
-        
+            var possibleObjects = new Dictionary<int, (Tile, Room)>();
+            //List<Tile> possibleObjects = new List<Tile>(); //Do tohoto listu se budou ukladat vsechny policka kam je mozne neco umistit a pak se nahodne vyberou
+            int indexOfTile = 0;
+            foreach (Room room in roomsInThisFloor)
+            {
+                for(int i = 0; i < room.floorTiles.Count; i++)
+                {
+                    possibleObjects.Add(indexOfTile , (room.floorTiles[i],room));
+                    indexOfTile++;
+                }
+            }
+            Console.WriteLine("Possible tiles to place items: " + possibleObjects.Count);
+
+            Random random = new Random();
+            int numberOfItemsOnFloor = random.Next(Constants.Constants.SPAWNRATE / (possibleObjects.Count / 8));
+            Console.WriteLine("numberOfItemsOnFloor: " + numberOfItemsOnFloor);
+
+            List<int> randomItemPositionList = new List<int>();
+            for (int i = 0; i <= numberOfItemsOnFloor;i++)
+            {
+                int randomPosition = random.Next(0, possibleObjects.Count);
+                while(randomItemPositionList.Contains(randomPosition)) //Taky: .Any(num => num == randomPosition)
+                {
+                    randomPosition = random.Next(0, possibleObjects.Count);
+                }
+                randomItemPositionList.Add(randomPosition);
+            }
         }
         //Generovani hrace na mape
         public void SpawnPlayer()
         {
-            foreach(List<Tile> tileRow in map)
+            foreach (List<Tile> tileRow in map)
             {
-                foreach(Tile tile in tileRow)
+                foreach (Tile tile in tileRow)
                 {
-                    if(tile.objectInTile is not null && tile.objectInTile.typeOfObject == TypeOfObject.ENTRANCE)
+                    if (tile.objectInTile is not null && tile.objectInTile.typeOfObject == TypeOfObject.ENTRANCE)
                     {
-                        tile.player = new Player(tile.x, tile.y, 10, 5, 1, 2, 1);
+                        player.x = tile.x;
+                        player.y = tile.y;
+                        map[player.y][player.x].isPlayer = true;
                     }
                 }
             }
         }
-
-
-        public void DrawMap()
+        public void PlayerMovement(string direction)
         {
-            List<List<Tile>> tileMap = map;
-            //Předělat tak, že se bude generovat pouze ~25 polí okolo hráče
-            //Stálo by za to také vytvořit novou Class coloured string, aby jednotilivé chars měli rozdílné barvy
-
-            foreach (Room room in rooms)
+            switch (direction)
             {
-                Console.WriteLine();
-                Console.WriteLine(room.type + " " + room.width + " " + room.height + " " + room.TopCornerX + " " + room.TopCornerY);
+                case "UP":
+                    if (map[player.y - 1][player.x].type == Type.GROUND || map[player.y - 1][player.x].type == Type.DOOR)
+                    {
+                        map[player.y][player.x].isPlayer = false;
+                        player.y--;
+                        map[player.y][player.x].isPlayer = true;
+                        Console.Clear();
+                        DrawMap();
+                    }
+                    break;
+                case "DOWN":
+                    if (map[player.y + 1][player.x].type == Type.GROUND || map[player.y + 1][player.x].type == Type.DOOR)
+                    {
+                        map[player.y][player.x].isPlayer = false;
+                        player.y++;
+                        map[player.y][player.x].isPlayer = true;
+                        Console.Clear();
+                        DrawMap();
+                    }
+                    break;
+                case "LEFT":
+                    if (map[player.y][player.x - 1].type == Type.GROUND || map[player.y][player.x - 1].type == Type.DOOR)
+                    {
+                        map[player.y][player.x].isPlayer = false;
+                        player.x--;
+                        map[player.y][player.x].isPlayer = true;
+                        Console.Clear();
+                        DrawMap();
+                    }
+                    break;
+                case "RIGHT":
+                    if (map[player.y][player.x + 1].type == Type.GROUND || map[player.y][player.x + 1].type == Type.DOOR)
+                    {
+                        map[player.y][player.x].isPlayer = false;
+                        player.x++;
+                        map[player.y][player.x].isPlayer = true;
+                        Console.Clear();
+                        DrawMap();
+                    }
+                    break;
             }
 
-            StringBuilder stringBuilderRow = new StringBuilder();
-            foreach(List<Tile> row in tileMap) 
+        }
+        public void CheckForUsable()
+        {
+            static void PlaceItemInSlot(int itemNumber)
             {
-                foreach (Tile tile in row)
-                {
+                // Add the item to the player's inventory or perform any other logic you need
+                Console.WriteLine($"Placing item {itemNumber} into the inventory...");
+                
+                // + logika toho dávat věci do inventáře
 
-                    switch (tile.type)
+            }
+
+            //vytvoření Dictionary s odpovidajicima akcema dle zmacknuti tlacitka, muze tu byt pridana taky mechanika toho ze se neco rozbije
+            var itemActions = new Dictionary<int, Action<int>>();
+            for (int i = 1; i < player.inventory.Count; i++)
+            {
+                itemActions.Add(i, PlaceItemInSlot); 
+            }
+
+            List<Tile> objectsForUsage = new List<Tile>(); 
+            for (int y = player.y - 1; y <= player.y + 1; y++)
+            {
+                for(int x = player.x - 1; x <= player.x + 1; x++)
+                {
+                    if (map[y][x].objectInTile != null && (map[y][x].objectInTile.typeOfObject == TypeOfObject.EXIT || map[y][x].objectInTile.typeOfObject == TypeOfObject.EXIT))
                     {
-                        case Type.WALL:
-                            stringBuilderRow.Append("▓▓");
-                            break;
-                        case Type.GROUND:
-                            if (tile.objectInTile is null || tile.objectInTile.typeOfObject == TypeOfObject.NONE)
+                        objectsForUsage.Add(map[y][x]);
+                    }
+
+                }
+            }
+
+
+            if (objectsForUsage.Any(tile => tile.objectInTile.typeOfObject == TypeOfObject.EXIT))
+            {
+                Console.WriteLine("Objekty v okolí: " + objectsForUsage.Count);
+
+                foreach (Tile item in objectsForUsage)
+                {
+                    Console.Write("In Inventory: ");
+                    for (int i = 0; i < player.inventory.Count; i++)
+                    {
+                        Console.Write(i + ") " + player.inventory[i].name + ", ");
+                    }
+                    Console.WriteLine();
+
+                    int itemNumber = objectsForUsage.IndexOf(item);
+                    Console.Write("In which position would you like to put your item number:" + itemNumber);
+                    for (int i = 0; i < player.inventory.Count; i++)
+                    {
+                        Console.Write(i + "), ");
+                    }
+                    Console.WriteLine();
+
+
+
+                    ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+                    if (int.TryParse(keyInfo.KeyChar.ToString(), out int selectedPosition))
+                    {
+                        if (selectedPosition >= 0 && selectedPosition < player.inventory.Count)
+                        {
+                            // Get the corresponding action for the selected item
+                            if (itemActions.TryGetValue(selectedPosition + 1, out Action<int> action))
                             {
-                                stringBuilderRow.Append(" .");
-                            }
-                            else if (tile.objectInTile is not null && tile.player is not null)
-                            {
-                                stringBuilderRow.Append(" ☺");
+                                action(itemNumber); // Execute the action passing the item number
                             }
                             else
                             {
-                                switch (tile.objectInTile.typeOfObject)
+                                Console.WriteLine("Invalid selection. Please choose a valid item number.");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid selection. Please choose a valid position number.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid input. Please enter a valid number.");
+                    }
+                    
+                }
+                objectsForUsage.Clear();
+            }
+            else
+            {
+
+            }
+        }
+        public void DrawMap()
+        {
+            //StringBuilder stringBuilder = new StringBuilder();
+
+            int differenceY = ((player.y - Constants.Constants.MAP_drawY) <= 0)
+            ? player.y - Constants.Constants.MAP_drawY : 
+                              ((player.y + Constants.Constants.MAP_drawY) >= Constants.Constants.MAP_HEIGHT)
+            ?  (player.y + Constants.Constants.MAP_drawY) - Constants.Constants.MAP_HEIGHT
+            : 0;
+
+            int differenceX = ((player.x - Constants.Constants.MAP_drawX) <= 0)
+            ? player.x - Constants.Constants.MAP_drawX : 
+                              ((player.x + Constants.Constants.MAP_drawX) >= Constants.Constants.MAP_WIDTH)
+            ? (player.x + Constants.Constants.MAP_drawX) - Constants.Constants.MAP_WIDTH
+            : 0;
+
+            //Konstanty pro ulehceni pocitani
+            int drawY = Constants.Constants.MAP_drawY;
+            int drawX = Constants.Constants.MAP_drawX;
+
+            Console.WriteLine("DifferenceY: " + differenceY + ", DrawY:" + drawY);
+            Console.WriteLine("DifferenceX: " + differenceX + ", DrawX" + drawX);
+            Console.WriteLine("PlayerX: " + player.x + "PlayerY: " + player.y);
+
+            //Prochazim od hrace mínus vykreslovaci polomer ktery se meni dle vzdalenost az po hrace + vykreslovaci polomer a plus rozdil
+            for (int y = player.y - (drawY + differenceY); y < player.y + (drawY - differenceY); y++)
+            {
+                for (int x = player.x - (drawX + differenceX); x < player.x + (drawX - differenceX); x++)
+                {
+                    switch (map[y][x].type)
+                    {
+                        case Type.WALL:
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.Write("▓▓");
+
+                            break;
+                        case Type.GROUND:
+                            //Console.BackgroundColor = ConsoleColor.Green;
+                            if (map[y][x].isPlayer)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.Write(" ☺");
+                            }
+                            else if (map[y][x].objectInTile is null || map[y][x].objectInTile.typeOfObject == TypeOfObject.NONE)
+                            {
+                                Console.Write(" .");
+                            }
+                            else
+                            {
+                                switch (map[y][x].objectInTile.typeOfObject)
                                 {
                                     case TypeOfObject.ENTRANCE:
-                                        stringBuilderRow.Append(" H");
+                                        Console.ForegroundColor = ConsoleColor.White;
+                                        Console.Write(" H");
                                         break;
                                     case TypeOfObject.EXIT:
-                                        stringBuilderRow.Append(">>");
+                                        Console.ForegroundColor = ConsoleColor.White;
+                                        Console.Write(">>");
                                         break;
                                     case TypeOfObject.ITEM:
 
@@ -604,19 +783,172 @@ namespace TextGame.Map
                             }
                             break;
                         case Type.INACCESIBLE:
-                            stringBuilderRow.Append("??");
+                            Console.Write("??");
                             break;
                         case Type.DOOR:
-                            stringBuilderRow.Append("[]");
+                            if (map[y][x].isPlayer)
+                            {
+                                Console.Write(" ☺");
+                            }
+                            else
+                            {
+                                Console.Write("[]");
+                            }
                             break;
                         default:
-                            stringBuilderRow.Append("  ");
+                            Console.Write("  ");
                             break;
+
                     }
+                    Console.ResetColor(); // Reset color to the default
                 }
-                Console.WriteLine(stringBuilderRow.ToString());
-                stringBuilderRow.Clear();
+                Console.WriteLine();
             }
+
         }
+
     }
 }
+/*//Prochazim od hrace mínus vykreslovaci polomer ktery se meni dle vzdalenost az po hrace + vykreslovaci polomer a plus rozdil
+for (int y = player.y - (drawY + differenceY); y < player.y + (drawY - differenceY); y++)
+{
+    StringBuilder stringBuilderRow = new StringBuilder();
+    for (int x = player.x - (drawX + differenceX); x < player.x + (drawX - differenceX); x++)
+    {
+        switch (map[y][x].type)
+        {
+            case Type.WALL:
+                stringBuilderRow.Append("▓▓");
+                break;
+            case Type.GROUND:
+                if (map[y][x].isPlayer)
+                {
+                    stringBuilderRow.Append(" ☺");
+                }
+                else if (map[y][x].objectInTile is null || map[y][x].objectInTile.typeOfObject == TypeOfObject.NONE)
+                {
+                    stringBuilderRow.Append(" .");
+                }
+                else
+                {
+                    switch (map[y][x].objectInTile.typeOfObject)
+                    {
+                        case TypeOfObject.ENTRANCE:
+                            stringBuilderRow.Append(" H");
+                            break;
+                        case TypeOfObject.EXIT:
+                            stringBuilderRow.Append(">>");
+                            break;
+                        case TypeOfObject.ITEM:
+
+                            break;
+                        default:
+                            continue;
+                    }
+
+                }
+                break;
+            case Type.INACCESIBLE:
+                stringBuilderRow.Append("??");
+                break;
+            case Type.DOOR:
+                if (map[y][x].isPlayer)
+                {
+                    stringBuilderRow.Append(" ☺");
+                }
+                else
+                {
+                    stringBuilderRow.Append("[]");
+                }
+                break;
+            default:
+                stringBuilderRow.Append("  ");
+                break;
+        }
+    }
+    Console.WriteLine(stringBuilderRow.ToString());
+    stringBuilderRow.Clear();
+}
+}
+
+}
+}
+
+//}
+//List<List<Tile>> tileMap = map;
+
+//Předělat tak, že se bude generovat pouze ~25 polí okolo hráče
+//Stálo by za to také vytvořit novou Class coloured string, aby jednotilivé chars měli rozdílné barvy
+
+/*            
+foreach (Room room in rooms)
+{
+    Console.WriteLine();
+    Console.WriteLine(room.type + " " + room.width + " " + room.height + " " + room.TopCornerX + " " + room.TopCornerY);
+}
+/*
+
+StringBuilder stringBuilderRow = new StringBuilder();
+foreach (List<Tile> row in map)
+{
+    foreach (Tile tile in row)
+    {
+
+        switch (tile.type)
+        {
+            case Type.WALL:
+                stringBuilderRow.Append("▓▓");
+                break;
+            case Type.GROUND:
+                if (tile.isPlayer)
+                {
+                    stringBuilderRow.Append(" ☺");
+                }
+                else if (tile.objectInTile is null || tile.objectInTile.typeOfObject == TypeOfObject.NONE)
+                {
+                    stringBuilderRow.Append(" .");
+                }
+                else
+                {
+                    switch (tile.objectInTile.typeOfObject)
+                    {
+                        case TypeOfObject.ENTRANCE:
+                            stringBuilderRow.Append(" H");
+                            break;
+                        case TypeOfObject.EXIT:
+                            stringBuilderRow.Append(">>");
+                            break;
+                        case TypeOfObject.ITEM:
+
+                            break;
+                        default:
+                            continue;
+                    }
+
+                }
+                break;
+            case Type.INACCESIBLE:
+                stringBuilderRow.Append("??");
+                break;
+            case Type.DOOR:
+                if (tile.isPlayer)
+                {
+                    stringBuilderRow.Append(" ☺");
+                }
+                else
+                {
+                    stringBuilderRow.Append("[]");
+                }
+                break;
+            default:
+                stringBuilderRow.Append("  ");
+                break;
+        }
+    }
+    Console.WriteLine(stringBuilderRow.ToString());
+    stringBuilderRow.Clear();
+}
+
+}
+}
+}//*/

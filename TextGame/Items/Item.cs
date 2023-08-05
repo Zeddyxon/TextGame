@@ -16,13 +16,16 @@ namespace TextGame.Items
     {
         public int x;
         public int y;
+        public string name;
         public ItemType type;
 
-        public Item(int x, int y, ItemType type) 
+        public Item(int x, int y, string name, ItemType type) 
         {
             this.x = x;
             this.y = y;
+            this.name = name;
             this.type = type;
         }
+        
     }
 }

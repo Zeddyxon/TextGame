@@ -14,7 +14,8 @@ namespace TextGame.Map
     DOOR,
     GROUND,
     OBJECT,
-    INACCESIBLE
+    INACCESIBLE,
+    END
     }
     public class Tile
     {
@@ -22,9 +23,10 @@ namespace TextGame.Map
         public int y { get; set; }
         public Type type { get; set; }
 
-        public Player? player { get; set; }
-        public Enemy? enemy { get; set; }
+        //public Player? player { get; set; }
+        //public Enemy? enemy { get; set; }
         public ObjectInTile? objectInTile { get; set; } 
+        public bool isPlayer { get; set; }
 
         public Tile(int x, int y, Type type)
         {

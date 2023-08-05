@@ -11,6 +11,7 @@ namespace TextGame.SuperClasses
         public int x { get; set; }
         public int y { get; set; }
         public int health { get; set; }
+        public int maxHealth { get; set; }
         public int defense { get; set; }
         public int attackPower { get; set; }
         public int attackRange { get; set; }
